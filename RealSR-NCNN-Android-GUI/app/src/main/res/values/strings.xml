@@ -1,5 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">RealSR BigImage</string>
+    <string name="menu_open_video">Open Video</string>
     <string name="default_log">\n
         This is a simple Android application that uses Realsr-NCNN, SRMD-NCNN, Real-CUGAN-NCNN, Real-ESRGAN, Waifu2x-NCNN, Anime4kCPP and ImageMagick.
 
