@@ -1,85 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
-
-    <item
-        android:id="@+id/progress"
-        android:title="@string/busy"
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/menu_out2in"
-        android:title="@string/menu_out2in"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/menu_dir_batch"
-        android:title="@string/dir_process_title"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/menu_open_video"
-        android:title="@string/menu_open_video"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/menu_avir2"
-        android:title="@string/menu_avir2"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/menu_magick2"
-        android:title="@string/menu_magick2"
-        app:showAsAction="never" />
-    <item
-    android:id="@+id/menu_magick3"
-    android:title="@string/menu_magick3"
-    app:showAsAction="never" />
-    <item
-    android:id="@+id/menu_magick4"
-    android:title="@string/menu_magick4"
-    app:showAsAction="never" />
-
-    <item
-        android:id="@+id/menu_de_nearest"
-        android:title="@string/menu_de_nearest"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/menu_de_nearest2"
-        android:title="@string/menu_de_nearest2"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/menu_perfectpixel"
-        android:title="@string/menu_perfectpixel" />
-    <item
-        android:id="@+id/menu_perfectpixel1"
-        android:title="@string/menu_perfectpixel1" />
-    <item
-        android:id="@+id/menu_perfectpixel2"
-        android:title="@string/menu_perfectpixel2" />
-    <item
-        android:id="@+id/menu_nearest4"
-        android:title="@string/menu_nearest4"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/menu_bench_mark"
-        android:title="@string/menu_bench_mark"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/menu_reset_cache"
-        android:title="@string/menu_reset_cache"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/menu_in"
-        android:title="@string/menu_in"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/menu_out"
-        android:title="@string/menu_out"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/menu_share"
-        android:title="@string/menu_share"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/menu_help"
-        android:title="@string/menu_help"
-        app:showAsAction="never" />
-</menu>
+<resources>
+    <string name="menu_open_video">Open video</string>
+    <string name="busy">Busy</string>
+    <string name="menu_out2in">Out → In</string>
+    <string name="dir_process_title">Process directory</string>
+    <string name="menu_avir2">Avir2</string>
+    <string name="menu_magick2">Magick2</string>
+    <string name="menu_magick3">Magick3</string>
+    <string name="menu_magick4">Magick4</string>
+    <string name="menu_de_nearest">DE Nearest</string>
+    <string name="menu_de_nearest2">DE Nearest 2</string>
+    <string name="menu_perfectpixel">Perfect Pixel</string>
+    <string name="menu_perfectpixel1">Perfect Pixel 1</string>
+    <string name="menu_perfectpixel2">Perfect Pixel 2</string>
+    <string name="menu_nearest4">Nearest ×4</string>
+    <string name="menu_bench_mark">Benchmark</string>
+    <string name="menu_reset_cache">Reset cache</string>
+    <string name="menu_in">In</string>
+    <string name="menu_out">Out</string>
+    <string name="menu_share">Share</string>
+    <string name="menu_help">Help</string>
+</resources>
