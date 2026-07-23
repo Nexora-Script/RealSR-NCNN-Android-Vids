@@ -118,6 +118,36 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
+            android:text="@string/cap_1080p_video"
+            android:textSize="18sp" />
+
+        <ToggleButton
+            android:id="@+id/toggle_cap_1080p_video"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:padding="5dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/fast_video_frames"
+            android:textSize="18sp" />
+
+        <ToggleButton
+            android:id="@+id/toggle_fast_video_frames"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:padding="5dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:text="@string/use_custom_label"
             android:textSize="18sp" />
 
