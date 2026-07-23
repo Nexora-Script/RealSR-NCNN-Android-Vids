@@ -449,10 +449,15 @@ public class MainActivity extends AppCompatActivity {
         if (uri != null) {
             try {
                 InputStream in = getContentResolver().openInputStream(uri);
-                if (null != in)
-                    saveInputImage(in, path);
-                else
+                if (null == in) {
                     Toast.makeText(this, R.string.share_is_null, Toast.LENGTH_SHORT).show();
+                } else if (path.isEmpty()
+                        && (VideoUtils.isVideoFile(getFileName(uri, this))
+                            || VideoUtils.isVideoMimeType(getContentResolver().getType(uri)))) {
+                    handleVideoInput(in, getFileName(uri, this));
+                } else {
+                    saveInputImage(in, path);
+                }
                 return true;
             } catch (IOException e) {
                 e.printStackTrace();
@@ -578,14 +583,16 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_open).setOnClickListener(view -> {
             if (useMultFiles) {
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("image/*");
+                intent.setType("*/*");
+                intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/*", "video/*"});
                 intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
                 startActivityForResult(intent, SELECT_MULTI_IMAGE);
 
             } else {
 
-                Intent i = new Intent(Intent.ACTION_PICK);
-                i.setType("image/*");
+                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                i.setType("*/*");
+                i.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/*", "video/*"});
                 startActivityForResult(i, SELECT_IMAGE);
             }
         });
@@ -643,6 +650,9 @@ public class MainActivity extends AppCompatActivity {
                 deleteFile(outputFile);
                 if (inputIsGifAnimation) {
                     outputGif.delete();
+                    outputFile.mkdir();
+                }
+                if (inputIsVideo) {
                     outputFile.mkdir();
                 }
                 if (keepScreen) {
@@ -720,16 +730,21 @@ public class MainActivity extends AppCompatActivity {
             Uri url = uris.get(0);
             {
 
-                inputFileName = getFileName(url, this).replaceFirst("\\.[^.]+$", "");
+                String rawFileName = getFileName(url, this);
+                inputFileName = rawFileName.replaceFirst("\\.[^.]+$", "");
                 Log.i("input file name", inputFileName);
                 InputStream in;
 
                 try {
                     in = getContentResolver().openInputStream(url);
-                    if (null != in)
-                        saveInputImage(in, "");
-                    else
+                    if (null == in) {
                         Toast.makeText(this, "input == null", Toast.LENGTH_SHORT).show();
+                    } else if (VideoUtils.isVideoFile(rawFileName)
+                            || VideoUtils.isVideoMimeType(getContentResolver().getType(url))) {
+                        handleVideoInput(in, rawFileName);
+                    } else {
+                        saveInputImage(in, "");
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     return;
@@ -780,16 +795,21 @@ public class MainActivity extends AppCompatActivity {
 
             if (requestCode == SELECT_IMAGE && null != url) {
                 deleteFile(inputFile);
-                inputFileName = getFileName(url, this).replaceFirst("\\.[^.]+$", "");
+                String rawFileName = getFileName(url, this);
+                inputFileName = rawFileName.replaceFirst("\\.[^.]+$", "");
                 Log.i("input file name", inputFileName);
                 InputStream in;
 
                 try {
                     in = getContentResolver().openInputStream(url);
-                    if (null != in)
-                        saveInputImage(in, "");
-                    else
+                    if (null == in) {
                         Toast.makeText(this, "input == null", Toast.LENGTH_SHORT).show();
+                    } else if (VideoUtils.isVideoFile(rawFileName)
+                            || VideoUtils.isVideoMimeType(getContentResolver().getType(url))) {
+                        handleVideoInput(in, rawFileName);
+                    } else {
+                        saveInputImage(in, "");
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     return;
@@ -923,7 +943,7 @@ public class MainActivity extends AppCompatActivity {
                 || cmd.startsWith("./magick input")
                 || cmd.startsWith("./Anime4k")) {
             if (cmd.contains(" input.png ") && cmd.contains(" output.png")) {
-                if (inputFile.isDirectory() && !inputIsGifAnimation) {
+                if (inputFile.isDirectory() && !inputIsGifAnimation && !inputIsVideo) {
                     export_dir = true;
                     String safeSavePath = ShellUtils.escapeShellArgument(savePath);
                     finalCmd = cmd.replace(" output.png ", " " + safeSavePath + " ");
@@ -988,7 +1008,7 @@ public class MainActivity extends AppCompatActivity {
             modelName = "SR";
 
         final boolean run_ncnn = bench_mark_mode || !modelName.equals("SR");
-        boolean export_one_file = run_ncnn && (autoSave || (inputFile.isDirectory() && inputIsGifAnimation))
+        boolean export_one_file = run_ncnn && (autoSave || (inputFile.isDirectory() && (inputIsGifAnimation || inputIsVideo)))
                 && cmd.contains("output.png");
         if (bench_mark_mode) {
             export_one_file = false;
@@ -1004,10 +1024,34 @@ public class MainActivity extends AppCompatActivity {
 
         if (save) {
             String export_cmd = saveOutputCmd();
-            if (inputIsGifAnimation)
+            if (inputIsGifAnimation) {
                 builder.append(";./magick -delay " + inputGifDelay + " output.png/* -loop 0 " + ShellUtils.escapeShellArgument(outputSavePath));
-            else
+            } else if (inputIsVideo) {
+                SharedPreferences videoPrefs = getSharedPreferences("config", Activity.MODE_PRIVATE);
+                boolean fastFrames = videoPrefs.getBoolean("fastVideoFrames", false);
+                boolean cap1080p = videoPrefs.getBoolean("cap1080pVideo", true);
+                String frameExt = fastFrames ? "jpg" : "png";
+                String escapedOut = ShellUtils.escapeShellArgument(outputSavePath);
+                String escapedVideoIn = ShellUtils.escapeShellArgument(inputVideoPath);
+
+                builder.append(";" + VideoUtils.buildReassembleCommand(
+                        inputVideoInfo.fps, "output.png", frameExt,
+                        escapedVideoIn, inputVideoInfo.hasAudio, escapedOut));
+
+                if (cap1080p && inputVideoInfo.height > 1080) {
+                    String cappedPath = outputSavePath.replaceFirst("\\.mp4$", "_1080p.mp4");
+                    String escapedCapped = ShellUtils.escapeShellArgument(cappedPath);
+                    builder.append(";" + VideoUtils.buildCapResolutionCommand(escapedOut, escapedCapped, 1080));
+                    builder.append(";mv " + escapedCapped + " " + escapedOut);
+                }
+
+                // Only the source frames + raw temp video are cleaned up here; output.png
+                // (the upscaled frames) is left in place, same as the existing gif path -
+                // it gets wiped by deleteFile(outputFile) at the start of the *next* run.
+                builder.append(";" + VideoUtils.buildCleanupCommand("input.png", escapedVideoIn));
+            } else {
                 builder.append(";" + export_cmd);
+            }
         } else {
             outputSavePath = "";
         }
@@ -1088,7 +1132,7 @@ public class MainActivity extends AppCompatActivity {
                                 if (outputFile.exists() && outputFile.isFile()) {
                                     updateImage(dir + "/output.png", String.format("%s\n%s", getString(R.string.hr), log),
                                             false);
-                                } else if (inputIsGifAnimation && outputFile.exists() && outputFile.isDirectory()
+                                } else if ((inputIsGifAnimation || inputIsVideo) && outputFile.exists() && outputFile.isDirectory()
                                         && outputFile.listFiles().length > 1) {
                                     updateImage(outputFile.listFiles()[0].getPath(),
                                             String.format("%s\n%s", getString(R.string.hr), log), false);
@@ -1137,18 +1181,76 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean inputIsGifAnimation;
     private int inputGifDelay;
+    private boolean inputIsVideo;
+    private VideoUtils.VideoInfo inputVideoInfo;
+    private String inputVideoPath;
 
     /**
-     * 保存文件
-     *
-     * @param in   输出的文件流
-     * @param path 输出的文件路径，路径为空时保存为input.png
-     * @return 是否保存成功
+     * Video counterpart of saveInputImage(): copies the picked video into the
+     * working dir, probes it with ffprobe, then extracts every frame into
+     * input.png/ so the existing directory-mode upscale path can run over it
+     * exactly like it already does for GIF frames.
      */
+    private boolean handleVideoInput(@NonNull InputStream in, String rawFileName) {
+        inputIsGifAnimation = false;
+        inputIsVideo = false;
+
+        String ext = rawFileName.contains(".")
+                ? rawFileName.substring(rawFileName.lastIndexOf('.'))
+                : ".mp4";
+        inputVideoPath = dir + "/input_video" + ext;
+
+        try {
+            File videoFile = new File(inputVideoPath);
+            if (videoFile.exists()) videoFile.delete();
+            try (OutputStream out = new FileOutputStream(videoFile)) {
+                byte[] buffer = new byte[65536];
+                int read;
+                while ((read = in.read(buffer)) != -1) {
+                    out.write(buffer, 0, read);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                in.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            inputVideoInfo = VideoUtils.probe(dir, inputVideoPath);
+        } catch (Exception e) {
+            e.printStackTrace();
+            runOnUiThread(() -> Toast.makeText(this,
+                    "ffprobe failed - check ffmpeg/ffprobe are bundled in assets/realsr",
+                    Toast.LENGTH_LONG).show());
+            return false;
+        }
+
+        deleteFile(inputFile);
+        inputFile.mkdirs();
+
+        boolean fastFrames = getSharedPreferences("config", Activity.MODE_PRIVATE)
+                .getBoolean("fastVideoFrames", false);
+        String extractCmd = fastFrames
+                ? VideoUtils.buildExtractFramesCommandFast(ShellUtils.escapeShellArgument(inputVideoPath), "input.png")
+                : VideoUtils.buildExtractFramesCommand(ShellUtils.escapeShellArgument(inputVideoPath), "input.png");
+        run_command(extractCmd);
+
+        inputIsVideo = true;
+        updateImage(dir + "/input.png", getString(R.string.lr), false);
+        return true;
+    }
+
     private boolean saveInputImage(@NonNull InputStream in, String path) {
 
         Log.i("saveInputImage", "start ");
         inputIsGifAnimation = false;
+        inputIsVideo = false;
         boolean inputOneImage = false;
         if (path.isEmpty()) {
             inputOneImage = true;
@@ -1381,7 +1483,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         String cmd;
-        if (inputIsGifAnimation) {
+        if (inputIsVideo) {
+            outputSavePath += ".mp4";
+            cmd = ("echo"); // unused - run20() builds the real ffmpeg reassembly chain for video
+        } else if (inputIsGifAnimation) {
             outputSavePath += ".gif";
             cmd = ("cp " + dir + "/output.gif");
         } else if (format == 0) {
