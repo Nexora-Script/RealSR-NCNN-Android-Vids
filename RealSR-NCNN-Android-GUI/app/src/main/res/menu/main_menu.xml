@@ -16,6 +16,10 @@
         android:title="@string/dir_process_title"
         app:showAsAction="never" />
     <item
+        android:id="@+id/menu_open_video"
+        android:title="@string/menu_open_video"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/menu_avir2"
         android:title="@string/menu_avir2"
         app:showAsAction="never" />
