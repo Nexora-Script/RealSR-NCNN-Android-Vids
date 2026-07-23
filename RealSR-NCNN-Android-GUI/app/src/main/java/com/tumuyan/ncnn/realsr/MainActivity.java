@@ -729,13 +729,15 @@ public class MainActivity extends AppCompatActivity {
         if (uris.size() == 1) {
             Uri url = uris.get(0);
             {
-
-                String rawFileName = getFileName(url, this);
-                inputFileName = rawFileName.replaceFirst("\\.[^.]+$", "");
-                Log.i("input file name", inputFileName);
                 InputStream in;
+                String rawFileName;
 
                 try {
+                    String resolved = getFileName(url, this);
+                    rawFileName = (resolved != null) ? resolved : "input";
+                    inputFileName = rawFileName.replaceFirst("\\.[^.]+$", "");
+                    Log.i("input file name", inputFileName);
+
                     in = getContentResolver().openInputStream(url);
                     if (null == in) {
                         Toast.makeText(this, "input == null", Toast.LENGTH_SHORT).show();
@@ -747,6 +749,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    Toast.makeText(this, "Failed to open file: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     return;
                 }
             }
@@ -795,12 +798,15 @@ public class MainActivity extends AppCompatActivity {
 
             if (requestCode == SELECT_IMAGE && null != url) {
                 deleteFile(inputFile);
-                String rawFileName = getFileName(url, this);
-                inputFileName = rawFileName.replaceFirst("\\.[^.]+$", "");
-                Log.i("input file name", inputFileName);
                 InputStream in;
+                String rawFileName;
 
                 try {
+                    String resolved = getFileName(url, this);
+                    rawFileName = (resolved != null) ? resolved : "input";
+                    inputFileName = rawFileName.replaceFirst("\\.[^.]+$", "");
+                    Log.i("input file name", inputFileName);
+
                     in = getContentResolver().openInputStream(url);
                     if (null == in) {
                         Toast.makeText(this, "input == null", Toast.LENGTH_SHORT).show();
@@ -812,6 +818,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    Toast.makeText(this, "Failed to open file: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     return;
                 }
             } else if (requestCode == SELECT_MULTI_IMAGE) {
