@@ -61,7 +61,7 @@ import java.util.Locale;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
-    private static final int SELECT_IMAGE = 1, SELECT_MULTI_IMAGE = 2;
+    private static final int SELECT_IMAGE = 1, SELECT_MULTI_IMAGE = 2, SELECT_VIDEO = 3;
     private static final int MY_PERMISSIONS_REQUEST = 100;
     private static final String CMD_CP_LIB_OPENCL = " if [ -e /system/vendor/lib64/libOpenCL.so ]; then cp /system/vendor/lib64/libOpenCL.so ./; elif [ -e /system/lib64/libOpenCL.so ]; then cp /system/lib64/libOpenCL.so ./; elif  [ -e /system/vendor/lib/libOpenCL.so ]; then cp /system/vendor/lib/libOpenCL.so ./; elif [ -e /system/lib/libOpenCL.so ]; then cp /system/lib/libOpenCL.so ./; else echo \"[warning]libOpenCL.so not find\"; fi; if [ -e /system/vendor/lib/egl/libGLES_mali.so ]; then cp /system/vendor/lib/egl/libGLES_mali.so ./; elif [ -e /system/lib/egl/libGLES_mali.so ]; then cp /system/lib/egl/libGLES_mali.so ./; else echo \"[warning]libGLES_mali.so not find\"; fi";
     private static final String CMD_RESET_CACHE = CMD_CP_LIB_OPENCL
@@ -243,6 +243,11 @@ public class MainActivity extends AppCompatActivity {
         } else if (v == R.id.menu_dir_batch) {
             Intent intent = new Intent(this, DirectoryProcessActivity.class);
             startActivity(intent);
+            return true;
+        } else if (v == R.id.menu_open_video) {
+            Intent videoIntent = new Intent(Intent.ACTION_GET_CONTENT);
+            videoIntent.setType("video/*");
+            startActivityForResult(videoIntent, SELECT_VIDEO);
             return true;
         } else
             q = "";
@@ -583,16 +588,14 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_open).setOnClickListener(view -> {
             if (useMultFiles) {
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("*/*");
-                intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/*", "video/*"});
+                intent.setType("image/*");
                 intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
                 startActivityForResult(intent, SELECT_MULTI_IMAGE);
 
             } else {
 
-                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-                i.setType("*/*");
-                i.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/*", "video/*"});
+                Intent i = new Intent(Intent.ACTION_PICK);
+                i.setType("image/*");
                 startActivityForResult(i, SELECT_IMAGE);
             }
         });
@@ -810,9 +813,6 @@ public class MainActivity extends AppCompatActivity {
                     in = getContentResolver().openInputStream(url);
                     if (null == in) {
                         Toast.makeText(this, "input == null", Toast.LENGTH_SHORT).show();
-                    } else if (VideoUtils.isVideoFile(rawFileName)
-                            || VideoUtils.isVideoMimeType(getContentResolver().getType(url))) {
-                        handleVideoInput(in, rawFileName);
                     } else {
                         saveInputImage(in, "");
                     }
@@ -828,6 +828,22 @@ public class MainActivity extends AppCompatActivity {
                     imageUris.add(clipData.getItemAt(i).getUri());
                 }
                 handleSelectedImages(imageUris);
+            } else if (requestCode == SELECT_VIDEO && null != url) {
+                deleteFile(inputFile);
+                try {
+                    InputStream in = getContentResolver().openInputStream(url);
+                    if (null == in) {
+                        Toast.makeText(this, "input == null", Toast.LENGTH_SHORT).show();
+                    } else {
+                        String resolved = getFileName(url, this);
+                        String rawFileName = (resolved != null) ? resolved : "input.mp4";
+                        inputFileName = rawFileName.replaceFirst("\\.[^.]+$", "");
+                        handleVideoInput(in, rawFileName);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(this, "Failed to open video: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                }
             }
 
         }
