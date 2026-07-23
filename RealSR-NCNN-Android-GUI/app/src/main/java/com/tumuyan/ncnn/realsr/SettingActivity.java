@@ -38,6 +38,8 @@ public class SettingActivity extends AppCompatActivity {
     ToggleButton togglePrePng;
     ToggleButton togglePreFrame;
     ToggleButton toggleAutoSave;
+    ToggleButton toggleCap1080pVideo;
+    ToggleButton toggleFastVideoFrames;
     ToggleButton toggleSearchView;
     ToggleButton toggleFinalCommand;
     ToggleButton toggleCustomLabel;
@@ -73,6 +75,8 @@ public class SettingActivity extends AppCompatActivity {
         String savePath = mySharePerferences.getString("savePath", "");
         boolean useCPU = mySharePerferences.getBoolean("useCPU", false);
         boolean autoSave = mySharePerferences.getBoolean("autoSave", false);
+        boolean cap1080pVideo = mySharePerferences.getBoolean("cap1080pVideo", true);
+        boolean fastVideoFrames = mySharePerferences.getBoolean("fastVideoFrames", false);
         boolean showSearchView = mySharePerferences.getBoolean("showSearchView", false);
         boolean showFinalCommand = mySharePerferences.getBoolean("showFinalCommand", false);
         boolean useCustomLabel = mySharePerferences.getBoolean("useCustomLabel", false);
@@ -114,6 +118,10 @@ public class SettingActivity extends AppCompatActivity {
         togglePreFrame.setChecked(preFrame);
         toggleAutoSave = findViewById(R.id.toggle_auto_save);
         toggleAutoSave.setChecked(autoSave);
+        toggleCap1080pVideo = findViewById(R.id.toggle_cap_1080p_video);
+        toggleCap1080pVideo.setChecked(cap1080pVideo);
+        toggleFastVideoFrames = findViewById(R.id.toggle_fast_video_frames);
+        toggleFastVideoFrames.setChecked(fastVideoFrames);
         toggleCPU = findViewById(R.id.toggle_cpu);
         toggleCPU.setChecked(useCPU);
         toggleSearchView = findViewById(R.id.toggle_serarch_view);
@@ -310,6 +318,8 @@ public class SettingActivity extends AppCompatActivity {
         editor.putBoolean("PreFrame", togglePreFrame.isChecked());
         editor.putBoolean("useCPU", toggleCPU.isChecked());
         editor.putBoolean("autoSave", toggleAutoSave.isChecked());
+        editor.putBoolean("cap1080pVideo", toggleCap1080pVideo.isChecked());
+        editor.putBoolean("fastVideoFrames", toggleFastVideoFrames.isChecked());
         editor.putBoolean("showSearchView", toggleSearchView.isChecked());
         editor.putBoolean("showFinalCommand", toggleFinalCommand.isChecked());
         editor.putBoolean("useCustomLabel", toggleCustomLabel.isChecked());
